@@ -94,6 +94,7 @@ async function loadUnidades() {
     try {
         console.log('Realizando petición con token:', token);
         const response = await fetch('http://187.251.132.2:5000/api/unidades', {
+            method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json'
@@ -101,6 +102,12 @@ async function loadUnidades() {
         });
 
         if (!response.ok) {
+            if (response.status === 500) {
+                console.error('Error del servidor:', response);
+                localStorage.clear();
+                window.location.href = 'login.html';
+                return;
+            }
             throw new Error(`Error en la respuesta: ${response.status}`);
         }
 

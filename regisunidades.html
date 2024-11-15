@@ -1,35 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <title>Registrar Unidades - PagaBus</title>
-    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
-    <link href="css/styles.css" rel="stylesheet" />
-    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <link rel="icon" href="logopagabus.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PagaBus - Gestión de Unidades</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"></script>
 </head>
 <body class="sb-nav-fixed">
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-        <a class="navbar-brand ps-3" href="index.html"><center>PagaBus</center></a>
-        <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
-        <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item" href="layout-sidenav-light.html">Configuraciones</a></li>
-                    <li><hr class="dropdown-divider" /></li>
-                    <li><a class="dropdown-item" href="layout-static.html">Cerrar Sesion</a></li>
-                </ul>
-            </li>
-        </ul>
+        <a class="navbar-brand ps-3" href="index.html">PagaBus</a>
+        <div class="ms-auto">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user fa-fw"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="layout-sidenav-light.html">Configuraciones</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="logout()">Cerrar Sesión</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
     </nav>
+
     <div id="layoutSidenav">
         <div id="layoutSidenav_nav">
-            <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+            <nav class="sb-sidenav accordion sb-sidenav-dark">
                 <div class="sb-sidenav-menu">
                     <div class="nav">
                         <div class="sb-sidenav-menu-heading">Inicio</div>
@@ -37,95 +37,103 @@
                             <div class="sb-nav-link-icon"><i class="fas fa-home"></i></div>
                             Inicio
                         </a>
+
                         <div class="sb-sidenav-menu-heading">Interface</div>
-                        <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseLayouts" aria-expanded="false" aria-controls="collapseLayouts">
-                            <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
-                            Paginas
-                            <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                        <a class="nav-link" href="tables.html">
+                            <div class="sb-nav-link-icon"><i class="fas fa-bus"></i></div>
+                            Unidades
                         </a>
-                        <div class="collapse" id="collapseLayouts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
-                            <nav class="sb-sidenav-menu-nested nav">
-                                <a class="nav-link" href="layout-static.html">Pagina de inicio</a>
-                                <a class="nav-link" href="layout-sidenav-light.html">Configuraciones</a>
-                            </nav>
-                        </div>
-                        <div class="sb-sidenav-menu-heading">Utilidades</div>
-                            <a class="nav-link" href="charts.html">
-                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
-                                 Graficas
-                            </a>
-                            <a class="nav-link" href="regisunidades.html">
-                                <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
-                                Registrar Unidad
-                            </a>
-                            <a class="nav-link" href="soporte.html">
-                                <div class="sb-nav-link-icon"><i class="fas fa-life-ring"></i></div>
-                                Soporte
-                            </a>
+                        <a class="nav-link" href="charts.html">
+                            <div class="sb-nav-link-icon"><i class="fas fa-chart-bar"></i></div>
+                            Gráficas
+                        </a>
+                        <a class="nav-link" href="soporte.html">
+                            <div class="sb-nav-link-icon"><i class="fas fa-headset"></i></div>
+                            Soporte
                         </a>
                     </div>
                 </div>
                 <div class="sb-sidenav-footer">
-                    <div class="small"><b>Logged in as:</b></div>
-                    <b>Cuenta Usuario</b>
+                    <div class="small">Logged in as:</div>
+                    <span id="userNameDisplay">Cargando...</span>
                 </div>
             </nav>
         </div>
+
         <div id="layoutSidenav_content">
             <main>
                 <div class="container-fluid px-4">
-                    <h1 class="mt-4">Registrar Unidades</h1>
+                    <h1 class="mt-4">Gestión de Unidades</h1>
                     <ol class="breadcrumb mb-4">
-                        <li class="breadcrumb-item active">Ingrese la información de la unidad</li>
+                        <li class="breadcrumb-item active">Administración de Unidades</li>
                     </ol>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-table me-1"></i>
+                            Unidades Registradas
+                        </div>
+                        <div class="card-body">
+                            <div id="unidadesTable"></div>
+                        </div>
+                    </div>
+
                     <div class="row">
-                        <div class="col-lg-6">
+                        <div class="col-lg-8">
                             <div class="card mb-4">
                                 <div class="card-header">
-                                    <i class="fas fa-bus-alt me-1"></i>
-                                    Información de la Unidad
+                                    <span id="formTitle">Registrar Nueva Unidad</span>
                                 </div>
                                 <div class="card-body">
-                                    <form>
+                                    <div id="alertMessage" class="alert" style="display: none;"></div>
+                                    <form id="unidadForm">
                                         <div class="mb-3">
-                                            <label for="unitNumber" class="form-label">Número de Unidad</label>
-                                            <input type="text" class="form-control" id="unitNumber" placeholder="Ingrese el número de la unidad" required>
+                                            <label for="placas" class="form-label">Placas</label>
+                                            <input type="text" class="form-control" id="placas" required>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="driverName" class="form-label">Nombre del Conductor</label>
-                                            <input type="text" class="form-control" id="driverName" placeholder="Ingrese el nombre del conductor" required>
+                                            <label for="numeroPermiso" class="form-label">Número de Permiso</label>
+                                            <input type="text" class="form-control" id="numeroPermiso" required>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="route" class="form-label">Ruta Asignada</label>
-                                            <input type="text" class="form-control" id="route" placeholder="Ingrese la ruta asignada" required>
+                                            <label for="marca" class="form-label">Marca</label>
+                                            <input type="text" class="form-control" id="marca" required>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="capacity" class="form-label">Capacidad</label>
-                                            <input type="number" class="form-control" id="capacity" placeholder="Ingrese la capacidad de la unidad" required>
+                                            <label for="modelo" class="form-label">Modelo</label>
+                                            <input type="text" class="form-control" id="modelo" required>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="status" class="form-label">Estado de la Unidad</label>
-                                            <select class="form-select" id="status" required>
-                                                <option selected>Seleccione el estado</option>
-                                                <option value="1">Operativa</option>
-                                                <option value="2">En Mantenimiento</option>
-                                                <option value="3">Fuera de Servicio</option>
+                                            <label for="ruta" class="form-label">Ruta Asignada</label>
+                                            <select class="form-select" id="ruta" required>
+                                                <option value="">Seleccione una ruta</option>
                                             </select>
                                         </div>
-                                        <button type="submit" class="btn btn-primary">Registrar Unidad</button>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" class="btn btn-primary">
+                                                <span id="submitText">Registrar Unidad</span>
+                                                <span id="submitSpinner" class="spinner-border spinner-border-sm" style="display: none;" role="status"></span>
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" onclick="resetForm()">Cancelar</button>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-6">
+                        <div class="col-lg-4">
                             <div class="card mb-4">
                                 <div class="card-header">
                                     <i class="fas fa-info-circle me-1"></i>
-                                    Información Adicional
+                                    Información
                                 </div>
                                 <div class="card-body">
-                                    <p>Ingrese todos los datos de la unidad con precisión. Estos datos serán utilizados para gestionar las operaciones diarias y el mantenimiento de las unidades.</p>
-                                    <p>El estado de la unidad permite gestionar el flujo de trabajo y el mantenimiento adecuado de cada vehículo.</p>
+                                    <p>Complete todos los campos requeridos para registrar una nueva unidad.</p>
+                                    <hr>
+                                    <ul>
+                                        <li>Las placas deben ser únicas</li>
+                                        <li>El número de permiso debe ser válido</li>
+                                        <li>Asegúrese de seleccionar una ruta</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
@@ -135,18 +143,18 @@
             <footer class="py-4 bg-light mt-auto">
                 <div class="container-fluid px-4">
                     <div class="d-flex align-items-center justify-content-between small">
-                        <div class="text-muted">Copyright &copy; PagaBus 2024</div>
+                        <div class="text-muted">Copyright © PagaBus 2024</div>
                         <div>
-                            <a href="#">Politicas de privacidad</a>
-                            &middot;
-                            <a href="#">Terminos &amp; Condiciones</a>
+                            <a href="#">Políticas de privacidad</a> · <a href="#">Términos & Condiciones</a>
                         </div>
                     </div>
                 </div>
             </footer>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/scripts.js"></script>
+    <script src="js/unidades.js"></script>
 </body>
 </html>
