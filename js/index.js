@@ -1,5 +1,3 @@
-console.log('Cargando index.js');
-
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM cargado, iniciando verificaciones...');
     try {
@@ -14,26 +12,42 @@ document.addEventListener('DOMContentLoaded', async function() {
         await loadUnidades();
     } catch (error) {
         console.error('Error en la inicialización:', error);
+        logout();
     }
 });
 
 async function checkAuth() {
     console.log('Verificando autenticación...');
     const token = localStorage.getItem('token');
-    console.log('Token encontrado:', token ? 'Sí' : 'No');
-
+    
     if (!token) {
-        console.log('No hay token presente');
-        window.location.href = 'login.html';
+        console.log('Faltan datos de autenticación');
+        logout();
         return false;
     }
 
     try {
-        if (isTokenExpired(token)) {
-            console.log('Token expirado');
+        const tokenData = parseJwt(token);
+        console.log('Token decodificado:', tokenData);
+
+        // Verificar expiración
+        if (tokenData.exp) {
+            const currentTime = Math.floor(Date.now() / 1000);
+            if (currentTime >= tokenData.exp) {
+                console.log('Token expirado');
+                logout();
+                return false;
+            }
+        }
+
+        // Verificar rol
+        const role = tokenData['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+        if (role !== 'C') {
+            console.log('Rol no autorizado');
             logout();
             return false;
         }
+
         return true;
     } catch (error) {
         console.error('Error verificando token:', error);
@@ -43,32 +57,24 @@ async function checkAuth() {
 }
 
 function displayUserName() {
-    console.log('Intentando mostrar nombre de usuario');
-    const userName = localStorage.getItem('userName');
-    const userNameElement = document.getElementById('userNameDisplay');
-    if (userName && userNameElement) {
-        userNameElement.textContent = userName;
-        console.log('Nombre de usuario mostrado:', userName);
-    } else {
-        console.log('No se encontró userName o elemento HTML', {userName, userNameElement});
+    const token = localStorage.getItem('token');
+    if (token) {
+        try {
+            const tokenData = parseJwt(token);
+            const userName = tokenData['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
+            const userNameElement = document.getElementById('userNameDisplay');
+            if (userName && userNameElement) {
+                userNameElement.textContent = userName;
+            }
+        } catch (error) {
+            console.error('Error mostrando nombre de usuario:', error);
+        }
     }
 }
 
 function logout() {
-    console.log('Ejecutando logout');
     localStorage.clear();
     window.location.href = 'login.html';
-}
-
-function isTokenExpired(token) {
-    try {
-        const tokenData = parseJwt(token);
-        const expirationDate = new Date(tokenData.exp * 1000);
-        return expirationDate < new Date();
-    } catch (error) {
-        console.error('Error verificando expiración del token:', error);
-        return true;
-    }
 }
 
 function parseJwt(token) {
@@ -78,12 +84,11 @@ function parseJwt(token) {
         return JSON.parse(window.atob(base64));
     } catch (error) {
         console.error('Error decodificando token:', error);
-        return {};
+        throw new Error('Token inválido');
     }
 }
 
 async function loadUnidades() {
-    console.log('Iniciando carga de unidades');
     const token = localStorage.getItem('token');
     
     if (!token) {
@@ -92,33 +97,33 @@ async function loadUnidades() {
     }
 
     try {
-        console.log('Realizando petición con token:', token);
         const response = await fetch('http://187.251.132.2:5000/api/unidades', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Accept': 'application/json'
-            }
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'omit'
         });
 
         if (!response.ok) {
-            if (response.status === 500) {
-                console.error('Error del servidor:', response);
-                localStorage.clear();
-                window.location.href = 'login.html';
+            if (response.status === 401 || response.status === 403) {
+                logout();
                 return;
             }
             throw new Error(`Error en la respuesta: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('Datos de unidades recibidos:', data);
         
-        if (data.items) {
+        if (data.items && Array.isArray(data.items)) {
             renderUnidadesTable(data.items);
             await loadGanancias(data.items);
+            updateActiveUnitsCount(data.items);
         } else {
-            console.error('No se encontraron items en la respuesta');
             showError('No hay datos de unidades disponibles');
         }
     } catch (error) {
@@ -127,164 +132,163 @@ async function loadUnidades() {
     }
 }
 
-function renderUnidadesTable(unidades) {
-    console.log('Renderizando tabla de unidades');
-    const tableContainer = document.getElementById('unidadesTable');
-    if (!tableContainer) {
-        console.error('No se encontró el contenedor de la tabla de unidades');
-        return;
+function updateActiveUnitsCount(unidades) {
+    const activeUnits = unidades.filter(unidad => unidad.status === 'Activo').length;
+    const activeUnitsElement = document.getElementById('activeUnits');
+    if (activeUnitsElement) {
+        activeUnitsElement.textContent = activeUnits;
     }
-    
-    if (!unidades || unidades.length === 0) {
-        tableContainer.innerHTML = '<div class="alert alert-info">No hay unidades registradas</div>';
-        return;
-    }
+}
 
-    const table = `
-        <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Placas</th>
-                        <th>Número de Permiso</th>
-                        <th>Marca</th>
-                        <th>Modelo</th>
-                        <th>Estado</th>
-                        <th>Ruta</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${unidades.map(unidad => `
-                        <tr>
-                            <td>${unidad.placas || ''}</td>
-                            <td>${unidad.numeroPermiso || ''}</td>
-                            <td>${unidad.marca || ''}</td>
-                            <td>${unidad.modelo || ''}</td>
-                            <td>${unidad.activo ? 
-                                '<span class="badge bg-success">Activo</span>' : 
-                                '<span class="badge bg-danger">Inactivo</span>'}</td>
-                            <td>${unidad.ruta ? unidad.ruta.nombre : 'Sin ruta asignada'}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
+function renderUnidadesTable(unidades) {
+    const tableContainer = document.getElementById('unidadesTable');
+    if (!tableContainer) return;
+
+    const table = document.createElement('table');
+    table.className = 'table table-bordered table-striped';
+    table.innerHTML = `
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Ruta</th>
+                <th>Chofer</th>
+                <th>Estado</th>
+                <th>Último Reporte</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${unidades.map(unidad => `
+                <tr>
+                    <td>${unidad.id}</td>
+                    <td>${unidad.ruta || 'No asignada'}</td>
+                    <td>${unidad.chofer || 'Sin asignar'}</td>
+                    <td>
+                        <span class="badge ${getStatusBadgeClass(unidad.status)}">
+                            ${unidad.status || 'Desconocido'}
+                        </span>
+                    </td>
+                    <td>${formatDate(unidad.ultimoReporte)}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="viewDetails('${unidad.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="editUnit('${unidad.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('')}
+        </tbody>
     `;
-    
-    tableContainer.innerHTML = table;
-    console.log('Tabla de unidades renderizada');
+
+    tableContainer.innerHTML = '';
+    tableContainer.appendChild(table);
+}
+
+function getStatusBadgeClass(status) {
+    switch (status?.toLowerCase()) {
+        case 'activo':
+            return 'bg-success';
+        case 'inactivo':
+            return 'bg-danger';
+        case 'mantenimiento':
+            return 'bg-warning';
+        default:
+            return 'bg-secondary';
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Sin registro';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleString('es-MX', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (error) {
+        return 'Fecha inválida';
+    }
 }
 
 async function loadGanancias(unidades) {
-    console.log('Cargando ganancias de unidades');
     const token = localStorage.getItem('token');
-    
-    if (!token || !unidades || unidades.length === 0) {
-        return;
-    }
+    if (!token || !unidades.length) return;
 
     try {
-        const today = new Date();
-        const startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-        
-        const gananciasPromises = unidades.map(async unidad => {
-            try {
-                const response = await fetch(
-                    `http://187.251.132.2:5000/api/unidades/${unidad.id}/transacciones?FechaInicio=${startDate.toISOString()}&FechaFin=${today.toISOString()}&Periodo=M`,
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Accept': 'application/json'
-                        }
-                    }
-                );
-
-                if (!response.ok) {
-                    throw new Error(`Error al cargar ganancias para unidad ${unidad.id}`);
-                }
-
-                const data = await response.json();
-                return {
-                    unidad: unidad,
-                    ganancias: data.items || []
-                };
-            } catch (error) {
-                console.error(`Error cargando ganancias para unidad ${unidad.id}:`, error);
-                return {
-                    unidad: unidad,
-                    ganancias: []
-                };
-            }
-        });
-
-        const resultados = await Promise.all(gananciasPromises);
-        console.log('Resultados de ganancias recibidos:', resultados);
-        renderGananciasTable(resultados);
+        // Aquí irá la lógica para cargar las ganancias cuando esté disponible el endpoint
+        const gananciasData = await fetchGanancias(unidades.map(u => u.id));
+        renderGananciasTable(gananciasData);
+        updateDashboardStats(gananciasData);
     } catch (error) {
         console.error('Error cargando ganancias:', error);
-        showError('Error al cargar las ganancias');
+        showError('Error al cargar información de ganancias');
     }
 }
 
-function renderGananciasTable(gananciasData) {
-    console.log('Renderizando tabla de ganancias');
-    const tableContainer = document.getElementById('gananciasTable');
-    if (!tableContainer) {
-        console.error('No se encontró el contenedor de la tabla de ganancias');
-        return;
-    }
+async function fetchGanancias(unidadesIds) {
+    // Este es un placeholder hasta que tengamos el endpoint real
+    return []; // Retorna un array vacío por ahora
+}
 
-    if (!gananciasData || gananciasData.length === 0) {
-        tableContainer.innerHTML = '<div class="alert alert-info">No hay datos de ganancias disponibles</div>';
-        return;
-    }
+function renderGananciasTable(ganancias) {
+    const container = document.getElementById('gananciasTable');
+    if (!container || !ganancias.length) return;
 
-    const table = `
-        <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Unidad</th>
-                        <th>Ganancias Totales</th>
-                        <th>Último Periodo</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${gananciasData.map(item => {
-                        const totalGanancias = item.ganancias.reduce((sum, g) => sum + g.totalGanancias, 0);
-                        const ultimoPeriodo = item.ganancias[item.ganancias.length - 1];
-                        return `
-                            <tr>
-                                <td>${item.unidad.placas}</td>
-                                <td>$${totalGanancias.toFixed(2)}</td>
-                                <td>${ultimoPeriodo ? 
-                                    `$${ultimoPeriodo.totalGanancias.toFixed(2)} (${new Date(ultimoPeriodo.periodo).toLocaleDateString()})` : 
-                                    'Sin datos'}</td>
-                            </tr>
-                        `;
-                    }).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-    
-    tableContainer.innerHTML = table;
-    console.log('Tabla de ganancias renderizada');
+    // Implementar cuando tengamos los datos reales
+}
+
+function updateDashboardStats(ganancias) {
+    // Actualizar estadísticas del dashboard cuando tengamos los datos
+    const ticketsSoldToday = document.getElementById('ticketsSoldToday');
+    if (ticketsSoldToday) {
+        ticketsSoldToday.textContent = '0'; // Actualizar con datos reales
+    }
+}
+
+function viewDetails(unitId) {
+    // Implementar vista de detalles
+    console.log('Ver detalles de unidad:', unitId);
+}
+
+function editUnit(unitId) {
+    // Implementar edición de unidad
+    console.log('Editar unidad:', unitId);
 }
 
 function showError(message) {
-    console.error('Mostrando error:', message);
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'alert alert-danger mt-3';
-    errorDiv.textContent = message;
-    const mainContent = document.querySelector('main');
-    if (mainContent) {
-        mainContent.insertBefore(errorDiv, mainContent.firstChild);
-        setTimeout(() => errorDiv.remove(), 5000);
-    } else {
-        console.error('No se encontró el elemento main');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+    alertDiv.role = 'alert';
+    
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    const container = document.querySelector('.container-fluid');
+    if (container) {
+        container.insertBefore(alertDiv, container.firstChild);
     }
+
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
 }
 
-// Verificar expiración del token periódicamente
-setInterval(checkAuth, 60000);
+// Verificar autenticación cada minuto
+setInterval(async () => {
+    const authOk = await checkAuth();
+    if (!authOk) {
+        logout();
+    }
+}, 60000);
+
+// Exportar funciones que necesiten ser accesibles desde HTML
+window.viewDetails = viewDetails;
+window.editUnit = editUnit;
+window.logout = logout;

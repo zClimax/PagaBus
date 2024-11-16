@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta Concesionario</title>
+</head>
+<body>
+    <h1>Crear Cuenta de Concesionario</h1>
+    <form id="concesionarioForm">
+        <div>
+            <label for="correo">Correo*:</label>
+            <input type="email" id="correo" name="correo" required>
+        </div>
+        <div>
+            <label for="contrasena">Contraseña*:</label>
+            <input type="password" id="contrasena" name="contrasena" required>
+        </div>
+        <div>
+            <label for="nombre">Nombre*:</label>
+            <input type="text" id="nombre" name="nombre" required>
+        </div>
+        <div>
+            <label for="apellidoPaterno">Apellido Paterno*:</label>
+            <input type="text" id="apellidoPaterno" name="apellidoPaterno" required>
+        </div>
+        <div>
+            <label for="apellidoMaterno">Apellido Materno*:</label>
+            <input type="text" id="apellidoMaterno" name="apellidoMaterno" required>
+        </div>
+        <div>
+            <label for="rfc">RFC:</label>
+            <input type="text" id="rfc" name="rfc">
+        </div>
+        <div>
+            <label for="curp">CURP:</label>
+            <input type="text" id="curp" name="curp">
+        </div>
+        <div>
+            <label for="telefono">Teléfono:</label>
+            <input type="tel" id="telefono" name="telefono">
+        </div>
+        <button type="submit">Crear Cuenta</button>
+    </form>
+
+    <div id="mensaje"></div>
+
+    <script>
+        document.getElementById('concesionarioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                correo: document.getElementById('correo').value,
+                contraseña: document.getElementById('contrasena').value,
+                nombre: document.getElementById('nombre').value,
+                apellidoPaterno: document.getElementById('apellidoPaterno').value,
+                apellidoMaterno: document.getElementById('apellidoMaterno').value,
+                rol: 'C',
+                rfc: document.getElementById('rfc').value,
+                curp: document.getElementById('curp').value,
+                telefono: document.getElementById('telefono').value
+            };
+
+            try {
+                const response = await fetch('http://187.251.132.2:5000/api/usuarios', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('mensaje').textContent = 'Cuenta creada exitosamente!';
+                    document.getElementById('mensaje').style.color = 'green';
+                } else {
+                    document.getElementById('mensaje').textContent = 'Error al crear la cuenta: ' + JSON.stringify(data);
+                    document.getElementById('mensaje').style.color = 'red';
+                }
+            } catch (error) {
+                document.getElementById('mensaje').textContent = 'Error de conexión: ' + error.message;
+                document.getElementById('mensaje').style.color = 'red';
+            }
+        });
+    </script>
+</body>
+</html>

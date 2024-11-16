@@ -7,8 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const tokenData = parseJwt(token);
             console.log('Token decodificado:', tokenData);
             if (!isTokenExpired(tokenData)) {
-                console.log('Token válido, redirigiendo a index...');
-                window.location.href = 'index.html';
+                console.log('Token válido, redirigiendo...');
+                window.location.href = 'saldo.html';
             } else {
                 console.log('Token expirado, limpiando...');
                 localStorage.clear();
@@ -31,16 +31,11 @@ async function handleLogin(event) {
     const buttonText = document.getElementById('loginButtonText');
     const spinner = document.getElementById('loginSpinner');
 
-    if (!email || !password) {
-        errorDiv.textContent = 'Por favor complete todos los campos';
-        errorDiv.style.display = 'block';
-        return;
-    }
-
+    // Mostrar loader
     buttonText.style.display = 'none';
-    spinner.style.display = 'inline-block';
+    spinner.classList.remove('d-none');
     loginButton.disabled = true;
-    errorDiv.style.display = 'none';
+    errorDiv.classList.add('d-none');
 
     try {
         const response = await fetch('http://187.251.132.2:5000/login', {
@@ -77,45 +72,28 @@ async function handleLogin(event) {
         const tokenData = parseJwt(data.token);
         console.log('Token decodificado:', tokenData);
 
-        // Guardar token
+        // Verificar que sea usuario tipo Pasajero
+        const role = tokenData['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+        if (role !== 'P') {
+            throw new Error('Acceso exclusivo para pasajeros');
+        }
+
+        // Guardar información de sesión
         localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', tokenData.id);
+        localStorage.setItem('userName', tokenData['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name']);
+        localStorage.setItem('userRole', role);
 
-        // Extraer y guardar información del usuario
-        if (tokenData.id) {
-            localStorage.setItem('userId', tokenData.id);
-        }
-        
-        const userName = tokenData['http://schemas.microsoft.com/ws/2008/06/identity/claims/name'];
-        if (userName) {
-            localStorage.setItem('userName', userName);
-        }
-
-        // Convertir el carácter de rol a texto
-        const roleChar = tokenData['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-        let userRole;
-        switch (roleChar) {
-            case 'A': userRole = 'Administrador'; break;
-            case 'C': userRole = 'Concesionario'; break;
-            case 'P': userRole = 'Pasajero'; break;
-            default: throw new Error('Rol de usuario no válido');
-        }
-        localStorage.setItem('userRole', userRole);
-
-        console.log('Datos guardados:', {
-            userId: tokenData.id,
-            userName,
-            userRole
-        });
-
-        window.location.href = 'index.html';
+        // Redirigir a la página de recargas
+        window.location.href = 'saldo.html';
 
     } catch (error) {
         console.error('Error en login:', error);
         errorDiv.textContent = error.message;
-        errorDiv.style.display = 'block';
+        errorDiv.classList.remove('d-none');
     } finally {
         buttonText.style.display = 'inline';
-        spinner.style.display = 'none';
+        spinner.classList.add('d-none');
         loginButton.disabled = false;
     }
 }
