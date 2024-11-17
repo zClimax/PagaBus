@@ -44,43 +44,86 @@
     </form>
 
     <div id="mensaje"></div>
+    <div id="debug" style="margin-top: 20px; padding: 10px; background-color: #f0f0f0;"></div>
 
     <script>
-        document.getElementById('concesionarioForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const formData = {
-                correo: document.getElementById('correo').value,
-                contraseña: document.getElementById('contrasena').value,
-                nombre: document.getElementById('nombre').value,
-                apellidoPaterno: document.getElementById('apellidoPaterno').value,
-                apellidoMaterno: document.getElementById('apellidoMaterno').value,
-                rol: 'C',
-                rfc: document.getElementById('rfc').value,
-                curp: document.getElementById('curp').value,
-                telefono: document.getElementById('telefono').value
+        // Función para obtener el token de autenticación
+        async function obtenerToken() {
+            const credenciales = {
+                correo: 'bubu@hotmail.com',
+                contraseña: 'Dificil123$'
             };
 
             try {
-                const response = await fetch('http://187.251.132.2:5000/api/usuarios', {
+                document.getElementById('debug').innerHTML += `<p>Intentando autenticar con: ${JSON.stringify(credenciales)}</p>`;
+                
+                const response = await fetch('http://187.251.132.2:5000/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    body: JSON.stringify(credenciales)
+                });
+
+                const responseText = await response.text();
+                document.getElementById('debug').innerHTML += `<p>Respuesta del servidor: ${responseText}</p>`;
+
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${responseText}`);
+                }
+
+                const data = JSON.parse(responseText);
+                return data.token;
+            } catch (error) {
+                document.getElementById('debug').innerHTML += `<p>Error capturado: ${error.message}</p>`;
+                throw error;
+            }
+        }
+
+        document.getElementById('concesionarioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('debug').innerHTML = '<h3>Log de depuración:</h3>';
+            
+            try {
+                const token = await obtenerToken();
+                document.getElementById('debug').innerHTML += `<p>Token obtenido: ${token}</p>`;
+
+                const formData = {
+                    correo: document.getElementById('correo').value,
+                    contraseña: document.getElementById('contrasena').value,
+                    nombre: document.getElementById('nombre').value,
+                    apellidoPaterno: document.getElementById('apellidoPaterno').value,
+                    apellidoMaterno: document.getElementById('apellidoMaterno').value,
+                    rol: 'C',
+                    rfc: document.getElementById('rfc').value || "",
+                    curp: document.getElementById('curp').value || "",
+                    telefono: document.getElementById('telefono').value || ""
+                };
+
+                document.getElementById('debug').innerHTML += `<p>Enviando datos de usuario: ${JSON.stringify(formData)}</p>`;
+
+                const response = await fetch('http://187.251.132.2:5000/api/usuarios', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify(formData)
                 });
 
-                const data = await response.json();
-                
+                const responseData = await response.text();
+                document.getElementById('debug').innerHTML += `<p>Respuesta de creación de usuario: ${responseData}</p>`;
+
                 if (response.ok) {
                     document.getElementById('mensaje').textContent = 'Cuenta creada exitosamente!';
                     document.getElementById('mensaje').style.color = 'green';
+                    document.getElementById('concesionarioForm').reset();
                 } else {
-                    document.getElementById('mensaje').textContent = 'Error al crear la cuenta: ' + JSON.stringify(data);
+                    document.getElementById('mensaje').textContent = 'Error al crear la cuenta: ' + responseData;
                     document.getElementById('mensaje').style.color = 'red';
                 }
             } catch (error) {
-                document.getElementById('mensaje').textContent = 'Error de conexión: ' + error.message;
+                document.getElementById('mensaje').textContent = 'Error: ' + error.message;
                 document.getElementById('mensaje').style.color = 'red';
             }
         });

@@ -1,11 +1,7 @@
 document.addEventListener('DOMContentLoaded', async function() {
     await checkAuth();
-    displayUserName();
     await cargarRutas();
     await cargarUnidades();
-    
-    // Configurar el formulario
-    document.getElementById('unidadForm').addEventListener('submit', handleSubmit);
 });
 
 async function checkAuth() {
@@ -18,24 +14,27 @@ async function checkAuth() {
     }
 
     try {
-        if (isTokenExpired(token)) {
-            console.log('Token expirado');
+        const tokenData = parseJwt(token);
+        if (tokenData['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] !== 'C') {
+            console.log('Usuario no es concesionario');
             logout();
             return false;
         }
+
+        // Mostrar nombre del usuario desde el token
+        const userName = tokenData['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
+        if (userName) {
+            const userNameElement = document.getElementById('userNameDisplay');
+            if (userNameElement) {
+                userNameElement.textContent = userName;
+            }
+        }
+
         return true;
     } catch (error) {
         console.error('Error en autenticación:', error);
         logout();
         return false;
-    }
-}
-
-function displayUserName() {
-    const userName = localStorage.getItem('userName');
-    const userNameElement = document.getElementById('userNameDisplay');
-    if (userName && userNameElement) {
-        userNameElement.textContent = userName;
     }
 }
 
@@ -48,29 +47,29 @@ async function cargarRutas() {
     console.log('Cargando rutas...');
     try {
         const token = localStorage.getItem('token');
+        
         const response = await fetch('http://187.251.132.2:5000/api/rutas', {
-            method: 'GET',
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Authorization': `Bearer ${token}`
             }
         });
 
-        console.log('Respuesta de rutas:', response.status);
+        console.log('Status respuesta rutas:', response.status);
+        const responseText = await response.text();
+        console.log('Respuesta rutas:', responseText);
 
         if (!response.ok) {
             throw new Error(`Error al cargar rutas: ${response.status}`);
         }
 
-        const data = await response.json();
-        console.log('Datos de rutas:', data);
+        const rutas = JSON.parse(responseText);
+        console.log('Rutas parseadas:', rutas);
         
         const rutaSelect = document.getElementById('rutaId');
         rutaSelect.innerHTML = '<option value="">Seleccione una ruta</option>';
         
-        if (data.items && Array.isArray(data.items)) {
-            data.items.forEach(ruta => {
+        if (Array.isArray(rutas)) {
+            rutas.forEach(ruta => {
                 const option = document.createElement('option');
                 option.value = ruta.id;
                 option.textContent = ruta.nombre;
@@ -79,100 +78,65 @@ async function cargarRutas() {
         }
 
     } catch (error) {
-        console.error('Error al cargar rutas:', error);
-        showError('Error al cargar las rutas. Por favor, intente de nuevo.');
+        console.error('Error detallado al cargar rutas:', error);
+        showError('Error al cargar las rutas disponibles.');
     }
 }
 
-async function cargarUnidades() {
-    console.log('Cargando unidades...');
+
+
+async function cargarRutas() {
+    console.log('Cargando rutas...');
     try {
         const token = localStorage.getItem('token');
-        console.log('Token para cargar unidades:', token);
+        const tokenData = parseJwt(token);
+        console.log('ID del concesionario:', tokenData.id);
         
-        const response = await fetch('http://187.251.132.2:5000/api/unidades', {
-            method: 'GET',
+        const response = await fetch('http://187.251.132.2:5000/api/rutas', {
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Authorization': `Bearer ${token}`
             }
         });
 
-        console.log('Respuesta del servidor:', response.status);
-        
-        if (response.status === 401) {
-            console.log('Token no válido, redirigiendo a login');
-            logout();
-            return;
-        }
+        console.log('Status respuesta rutas:', response.status);
+        const responseText = await response.text();
+        console.log('Respuesta rutas:', responseText);
 
         if (!response.ok) {
-            throw new Error(`Error del servidor: ${response.status}`);
+            console.error('Error response:', response.status, responseText);
+            throw new Error(`Error al cargar rutas: ${response.status}`);
         }
 
-        const data = await response.json();
-        console.log('Datos de unidades recibidos:', data);
-        renderUnidadesTable(data.items || []);
+        const rutas = JSON.parse(responseText);
+        console.log('Rutas procesadas:', rutas);
+        
+        const rutaSelect = document.getElementById('rutaId');
+        rutaSelect.innerHTML = '<option value="">Seleccione una ruta</option>';
+        
+        // Filtrar solo rutas activas
+        rutas.forEach(ruta => {
+            if (ruta.activa) {
+                const option = document.createElement('option');
+                option.value = ruta.id;
+                option.textContent = ruta.nombre;
+                rutaSelect.appendChild(option);
+            }
+        });
 
     } catch (error) {
-        console.error('Error al cargar unidades:', error);
-        showError('Error al cargar las unidades. Por favor, intente de nuevo.');
+        console.error('Error detallado al cargar rutas:', error);
+        showError('Error al cargar las rutas disponibles. ' + error.message);
     }
 }
 
-function renderUnidadesTable(unidades) {
-    console.log('Renderizando tabla de unidades:', unidades);
-    const tableContainer = document.getElementById('unidadesTable');
-    if (!unidades || unidades.length === 0) {
-        tableContainer.innerHTML = '<div class="alert alert-info">No hay unidades registradas</div>';
-        return;
-    }
-
-    const table = `
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead>
-                    <tr>
-                        <th>Placas</th>
-                        <th>Permiso</th>
-                        <th>Marca</th>
-                        <th>Modelo</th>
-                        <th>Ruta</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${unidades.map(unidad => `
-                        <tr>
-                            <td>${unidad.placas || ''}</td>
-                            <td>${unidad.numeroPermiso || ''}</td>
-                            <td>${unidad.marca || ''}</td>
-                            <td>${unidad.modelo || ''}</td>
-                            <td>${unidad.ruta ? unidad.ruta.nombre : 'Sin ruta'}</td>
-                            <td>
-                                <button class="btn btn-primary btn-sm" onclick="editarUnidad('${unidad.id}')">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-    
-    tableContainer.innerHTML = table;
-}
-
+// Función para registrar una nueva unidad
 async function handleSubmit(event) {
     event.preventDefault();
-    console.log('Iniciando envío de formulario...');
+    console.log('Iniciando registro de unidad...');
 
     const button = document.getElementById('submitButton');
     const spinner = document.getElementById('submitSpinner');
     const buttonText = document.getElementById('submitText');
-    const unidadId = document.getElementById('unidadId').value;
     
     const formData = {
         placas: document.getElementById('placas').value,
@@ -184,47 +148,41 @@ async function handleSubmit(event) {
 
     console.log('Datos del formulario:', formData);
 
+    if (!formData.rutaId) {
+        showError('Debe seleccionar una ruta');
+        return;
+    }
+
     button.disabled = true;
     buttonText.style.display = 'none';
     spinner.style.display = 'inline-block';
 
     try {
         const token = localStorage.getItem('token');
-        const url = unidadId ? 
-            `http://187.251.132.2:5000/api/unidades/${unidadId}` : 
-            'http://187.251.132.2:5000/api/unidades';
-        
-        console.log('Enviando petición a:', url);
-        
-        const response = await fetch(url, {
-            method: unidadId ? 'PUT' : 'POST',
+        const response = await fetch('http://187.251.132.2:5000/api/unidades', {
+            method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(formData)
         });
 
-        console.log('Respuesta del servidor:', response.status);
-
-        const data = await response.json();
-        console.log('Datos de respuesta:', data);
+        console.log('Status respuesta creación:', response.status);
+        const responseText = await response.text();
+        console.log('Respuesta creación:', responseText);
 
         if (!response.ok) {
-            throw new Error(data.message || 'Error al procesar la solicitud');
+            throw new Error(responseText);
         }
 
-        showSuccess(unidadId ? 'Unidad modificada exitosamente' : 'Unidad registrada exitosamente');
+        showSuccess('Unidad registrada exitosamente');
         document.getElementById('unidadForm').reset();
-        if (unidadId) {
-            cancelarEdicion();
-        }
         await cargarUnidades();
 
     } catch (error) {
-        console.error('Error en el envío:', error);
-        showError(error.message || 'Error al procesar la solicitud');
+        console.error('Error al registrar unidad:', error);
+        showError(error.message || 'Error al registrar la unidad');
     } finally {
         button.disabled = false;
         buttonText.style.display = 'inline-block';
@@ -232,58 +190,8 @@ async function handleSubmit(event) {
     }
 }
 
-async function editarUnidad(id) {
-    console.log('Editando unidad:', id);
-    try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`http://187.251.132.2:5000/api/unidades/${id}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Error al cargar los datos de la unidad');
-        }
-
-        const unidad = await response.json();
-        console.log('Datos de la unidad a editar:', unidad);
-        
-        // Llenar el formulario
-        document.getElementById('unidadId').value = unidad.id;
-        document.getElementById('placas').value = unidad.placas;
-        document.getElementById('numeroPermiso').value = unidad.numeroPermiso;
-        document.getElementById('marca').value = unidad.marca;
-        document.getElementById('modelo').value = unidad.modelo;
-        document.getElementById('rutaId').value = unidad.rutaId || '';
-
-        // Cambiar la apariencia del formulario
-        document.getElementById('formTitle').textContent = 'Modificar Unidad';
-        document.getElementById('submitText').textContent = 'Guardar Cambios';
-        document.getElementById('cancelButton').style.display = 'block';
-        document.getElementById('infoText').textContent = 'Modifique los campos necesarios y guarde los cambios.';
-
-    } catch (error) {
-        console.error('Error al cargar datos para editar:', error);
-        showError(error.message);
-    }
-}
-
-function cancelarEdicion() {
-    console.log('Cancelando edición');
-    document.getElementById('unidadForm').reset();
-    document.getElementById('unidadId').value = '';
-    document.getElementById('formTitle').textContent = 'Registrar Nueva Unidad';
-    document.getElementById('submitText').textContent = 'Registrar Unidad';
-    document.getElementById('cancelButton').style.display = 'none';
-    document.getElementById('infoText').textContent = 'Complete todos los campos requeridos para registrar una nueva unidad.';
-}
-
+// El resto del código permanece igual...
 function showError(message) {
-    console.error('Error:', message);
     const alertDiv = document.getElementById('alertMessage');
     alertDiv.className = 'alert alert-danger';
     alertDiv.textContent = message;
@@ -292,7 +200,6 @@ function showError(message) {
 }
 
 function showSuccess(message) {
-    console.log('Éxito:', message);
     const alertDiv = document.getElementById('alertMessage');
     alertDiv.className = 'alert alert-success';
     alertDiv.textContent = message;
@@ -304,19 +211,19 @@ function parseJwt(token) {
     try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        return JSON.parse(window.atob(base64));
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
     } catch (error) {
-        console.error('Error decodificando token:', error);
-        return {};
+        console.error('Error al parsear token:', error);
+        throw new Error('Token inválido');
     }
 }
 
-function isTokenExpired(token) {
-    try {
-        const tokenData = parseJwt(token);
-        const expirationDate = new Date(tokenData.exp * 1000);
-        return expirationDate < new Date();
-    } catch (error) {
-        return true;
-    }
-}
+// Asignar el evento submit al formulario
+document.getElementById('unidadForm').addEventListener('submit', handleSubmit);
+
+// Exportar funciones necesarias
+window.logout = logout;

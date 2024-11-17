@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Concesionario a Ruta</title>
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        select, input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #mensaje {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+        #debug {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Agregar Concesionario a Ruta</h1>
+        <form id="asignacionForm">
+            <div class="form-group">
+                <label for="ruta">Ruta*:</label>
+                <select id="ruta" required>
+                    <option value="">Seleccione una ruta</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="concesionarioId">ID del Concesionario*:</label>
+                <input type="text" id="concesionarioId" required>
+                <small>Ingrese el ID del concesionario (formato GUID)</small>
+            </div>
+
+            <button type="submit">Agregar Concesionario a Ruta</button>
+        </form>
+
+        <div id="mensaje"></div>
+        <div id="debug"></div>
+    </div>
+
+    <script>
+        // Función para validar formato GUID
+        function isValidGuid(guid) {
+            const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            return guidRegex.test(guid);
+        }
+
+        async function obtenerToken() {
+            const credenciales = {
+                correo: 'bubu@hotmail.com',
+                contraseña: 'Dificil123$'
+            };
+
+            try {
+                const response = await fetch('http://187.251.132.2:5000/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(credenciales)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error de autenticación');
+                }
+
+                const data = await response.json();
+                return data.token;
+            } catch (error) {
+                throw new Error('Error al obtener el token: ' + error.message);
+            }
+        }
+
+        async function cargarRutas() {
+            try {
+                const token = await obtenerToken();
+                const response = await fetch('http://187.251.132.2:5000/api/rutas?activas=true&inactivas=false', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar las rutas');
+                }
+
+                const rutas = await response.json();
+                const selectRuta = document.getElementById('ruta');
+                
+                rutas.forEach(ruta => {
+                    const option = document.createElement('option');
+                    option.value = ruta.id;
+                    option.textContent = ruta.nombre;
+                    selectRuta.appendChild(option);
+                });
+            } catch (error) {
+                document.getElementById('debug').innerHTML += `<p>Error al cargar rutas: ${error.message}</p>`;
+                document.getElementById('mensaje').textContent = 'Error al cargar las rutas';
+                document.getElementById('mensaje').className = 'error';
+            }
+        }
+
+        document.getElementById('asignacionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const rutaId = document.getElementById('ruta').value;
+            const concesionarioId = document.getElementById('concesionarioId').value.trim();
+
+            // Validar formato GUID
+            if (!isValidGuid(concesionarioId)) {
+                document.getElementById('mensaje').textContent = 'El ID del concesionario debe estar en formato GUID válido';
+                document.getElementById('mensaje').className = 'error';
+                return;
+            }
+
+            if (!rutaId) {
+                document.getElementById('mensaje').textContent = 'Por favor, seleccione una ruta';
+                document.getElementById('mensaje').className = 'error';
+                return;
+            }
+
+            try {
+                const token = await obtenerToken();
+                const requestBody = {
+                    concesionarioId: concesionarioId
+                };
+
+                document.getElementById('debug').innerHTML = `
+                    <p>Intentando agregar concesionario a ruta</p>
+                    <p>Ruta ID: ${rutaId}</p>
+                    <p>Concesionario ID: ${concesionarioId}</p>
+                    <p>Request Body: ${JSON.stringify(requestBody)}</p>
+                `;
+
+                const response = await fetch(`http://187.251.132.2:5000/api/rutas/${rutaId}/concesionarios`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const responseText = await response.text();
+                document.getElementById('debug').innerHTML += `<p>Respuesta del servidor: ${responseText}</p>`;
+
+                if (response.ok) {
+                    const responseData = JSON.parse(responseText);
+                    document.getElementById('mensaje').textContent = `Concesionario agregado exitosamente a la ruta "${responseData.rutaNombre}"`;
+                    document.getElementById('mensaje').className = 'success';
+                    document.getElementById('concesionarioId').value = '';
+                } else {
+                    throw new Error(responseText);
+                }
+            } catch (error) {
+                document.getElementById('mensaje').textContent = `Error: ${error.message}`;
+                document.getElementById('mensaje').className = 'error';
+            }
+        });
+
+        // Cargar rutas al iniciar
+        window.onload = cargarRutas;
+    </script>
+</body>
+</html>

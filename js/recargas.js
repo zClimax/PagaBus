@@ -121,11 +121,16 @@ function updateAccountInfo(data) {
     const userEmail = document.getElementById('userEmail');
     
     if (userFullName) {
-        userFullName.textContent = `${data.cuentaNombre || ''} ${data.cuentaApellidoPaterno || ''} ${data.cuentaApellidoMaterno || ''}`.trim();
+        // Agregamos un console.log para ver la estructura de data
+        console.log('Datos recibidos:', data);
+        
+        // Asumiendo que los datos vienen directamente en el objeto
+        const nombreCompleto = `${data.nombre || ''} ${data.apellidoPaterno || ''} ${data.apellidoMaterno || ''}`.trim();
+        userFullName.textContent = nombreCompleto || 'No disponible';
     }
     
     if (userEmail) {
-        userEmail.textContent = data.cuentaCorreo || 'No disponible';
+        userEmail.textContent = data.correo || 'No disponible';
     }
 }
 
