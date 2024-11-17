@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Unidades - PagaBus</title>
+    <title>Registro de Unidades - PagaBus</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet">
     <link href="css/styles.css" rel="stylesheet">
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js"></script>
 </head>
@@ -37,13 +36,9 @@
                             Inicio
                         </a>
                         <div class="sb-sidenav-menu-heading">Interface</div>
-                        <a class="nav-link" href="regisunidades.html">
+                        <a class="nav-link" href="tables.html">
                             <div class="sb-nav-link-icon"><i class="fas fa-bus"></i></div>
-                            Unidades
-                        </a>
-                        <a class="nav-link" href="charts.html">
-                            <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
-                            Gráficas
+                            Ver Unidades
                         </a>
                         <a class="nav-link" href="soporte.html">
                             <div class="sb-nav-link-icon"><i class="fas fa-support"></i></div>
@@ -61,53 +56,39 @@
         <div id="layoutSidenav_content">
             <main>
                 <div class="container-fluid px-4">
-                    <h1 class="mt-4">Gestión de Unidades</h1>
+                    <h1 class="mt-4">Registro de Unidades</h1>
                     <ol class="breadcrumb mb-4">
-                        <li class="breadcrumb-item active">Administración de Unidades</li>
+                        <li class="breadcrumb-item active">Registrar Nueva Unidad</li>
                     </ol>
 
-                    <!-- Tabla de Unidades -->
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <i class="fas fa-table me-1"></i>
-                            Unidades Registradas
-                        </div>
-                        <div class="card-body">
-                            <div id="unidadesTable">
-                                <!-- La tabla se llenará dinámicamente -->
-                            </div>
-                        </div>
-                    </div>
-
                     <div class="row">
-                        <!-- Formulario de Registro -->
                         <div class="col-lg-8">
                             <div class="card mb-4">
                                 <div class="card-header">
-                                    <i class="fas fa-plus-circle me-1"></i>
+                                    <i class="fas fa-bus me-1"></i>
                                     Registrar Nueva Unidad
                                 </div>
                                 <div class="card-body">
                                     <div id="alertMessage" class="alert" style="display: none;"></div>
                                     <form id="unidadForm">
                                         <div class="mb-3">
-                                            <label for="placas" class="form-label">Placas*</label>
+                                            <label for="placas" class="form-label">Placas*:</label>
                                             <input type="text" class="form-control" id="placas" required>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="numeroPermiso" class="form-label">Número de Permiso*</label>
+                                            <label for="numeroPermiso" class="form-label">Número de Permiso*:</label>
                                             <input type="text" class="form-control" id="numeroPermiso" required>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="marca" class="form-label">Marca*</label>
+                                            <label for="marca" class="form-label">Marca*:</label>
                                             <input type="text" class="form-control" id="marca" required>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="modelo" class="form-label">Modelo*</label>
+                                            <label for="modelo" class="form-label">Modelo*:</label>
                                             <input type="text" class="form-control" id="modelo" required>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="rutaId" class="form-label">Ruta Asignada*</label>
+                                            <label for="rutaId" class="form-label">Ruta Asignada*:</label>
                                             <select class="form-control" id="rutaId" required>
                                                 <option value="">Seleccione una ruta</option>
                                             </select>
@@ -123,7 +104,6 @@
                             </div>
                         </div>
 
-                        <!-- Panel de Información -->
                         <div class="col-lg-4">
                             <div class="card mb-4">
                                 <div class="card-header">
@@ -160,7 +140,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js"></script>
     <script src="js/regisunidades.js"></script>
 </body>
 </html>

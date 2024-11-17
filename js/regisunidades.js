@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', async function() {
     await checkAuth();
     await cargarRutas();
-    await cargarUnidades();
 });
 
 async function checkAuth() {
@@ -21,7 +20,6 @@ async function checkAuth() {
             return false;
         }
 
-        // Mostrar nombre del usuario desde el token
         const userName = tokenData['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
         if (userName) {
             const userNameElement = document.getElementById('userNameDisplay');
@@ -42,48 +40,6 @@ function logout() {
     localStorage.clear();
     window.location.href = 'login.html';
 }
-
-async function cargarRutas() {
-    console.log('Cargando rutas...');
-    try {
-        const token = localStorage.getItem('token');
-        
-        const response = await fetch('http://187.251.132.2:5000/api/rutas', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        console.log('Status respuesta rutas:', response.status);
-        const responseText = await response.text();
-        console.log('Respuesta rutas:', responseText);
-
-        if (!response.ok) {
-            throw new Error(`Error al cargar rutas: ${response.status}`);
-        }
-
-        const rutas = JSON.parse(responseText);
-        console.log('Rutas parseadas:', rutas);
-        
-        const rutaSelect = document.getElementById('rutaId');
-        rutaSelect.innerHTML = '<option value="">Seleccione una ruta</option>';
-        
-        if (Array.isArray(rutas)) {
-            rutas.forEach(ruta => {
-                const option = document.createElement('option');
-                option.value = ruta.id;
-                option.textContent = ruta.nombre;
-                rutaSelect.appendChild(option);
-            });
-        }
-
-    } catch (error) {
-        console.error('Error detallado al cargar rutas:', error);
-        showError('Error al cargar las rutas disponibles.');
-    }
-}
-
-
 
 async function cargarRutas() {
     console.log('Cargando rutas...');
@@ -113,7 +69,6 @@ async function cargarRutas() {
         const rutaSelect = document.getElementById('rutaId');
         rutaSelect.innerHTML = '<option value="">Seleccione una ruta</option>';
         
-        // Filtrar solo rutas activas
         rutas.forEach(ruta => {
             if (ruta.activa) {
                 const option = document.createElement('option');
@@ -129,7 +84,6 @@ async function cargarRutas() {
     }
 }
 
-// Función para registrar una nueva unidad
 async function handleSubmit(event) {
     event.preventDefault();
     console.log('Iniciando registro de unidad...');
@@ -178,7 +132,6 @@ async function handleSubmit(event) {
 
         showSuccess('Unidad registrada exitosamente');
         document.getElementById('unidadForm').reset();
-        await cargarUnidades();
 
     } catch (error) {
         console.error('Error al registrar unidad:', error);
@@ -190,7 +143,6 @@ async function handleSubmit(event) {
     }
 }
 
-// El resto del código permanece igual...
 function showError(message) {
     const alertDiv = document.getElementById('alertMessage');
     alertDiv.className = 'alert alert-danger';
