@@ -38,7 +38,7 @@ async function handleLogin(event) {
     errorDiv.classList.add('d-none');
 
     try {
-        const response = await fetch('http://187.251.132.2:5000/login', {
+        const response = await fetch('/api/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

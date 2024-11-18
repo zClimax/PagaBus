@@ -48,7 +48,7 @@ async function cargarRutas() {
         const tokenData = parseJwt(token);
         console.log('ID del concesionario:', tokenData.id);
         
-        const response = await fetch('http://187.251.132.2:5000/api/rutas', {
+        const response = await fetch('/api/api/rutas', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -113,7 +113,7 @@ async function handleSubmit(event) {
 
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://187.251.132.2:5000/api/unidades', {
+        const response = await fetch('/api/api/unidades', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,

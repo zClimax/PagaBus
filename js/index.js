@@ -97,7 +97,7 @@ async function loadUnidades() {
     }
 
     try {
-        const response = await fetch('http://187.251.132.2:5000/api/unidades', {
+        const response = await fetch('/api/api/unidades', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,

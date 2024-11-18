@@ -83,7 +83,7 @@
             try {
                 document.getElementById('debug').innerHTML += `<p>Intentando autenticar como administrador...</p>`;
                 
-                const response = await fetch('http://187.251.132.2:5000/login', {
+                const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -121,7 +121,7 @@
 
                 document.getElementById('debug').innerHTML += `<p>Enviando datos de ruta: ${JSON.stringify(formData)}</p>`;
 
-                const response = await fetch('http://187.251.132.2:5000/api/rutas', {
+                const response = await fetch('/api/api/rutas', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

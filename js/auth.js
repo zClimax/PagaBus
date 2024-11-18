@@ -1,6 +1,6 @@
 // auth.js
 
-const API_BASE_URL = 'http://187.251.132.2:5000';
+const API_BASE_URL = '/api';
 
 // Función para decodificar el token JWT
 function decodeJWT(token) {

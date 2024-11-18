@@ -88,7 +88,7 @@ async function loadAccountInfo() {
     }
 
     try {
-        const response = await fetch(`http://187.251.132.2:5000/api/cuentas/${userId}`, {
+        const response = await fetch(`/api/api/cuentas/${userId}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -141,7 +141,7 @@ async function loadTransactionHistory() {
 
     try {
         // La API espera los parámetros en el cuerpo de la solicitud
-        const response = await fetch('http://187.251.132.2:5000/api/transacciones', {
+        const response = await fetch('/api/api/transacciones', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -267,7 +267,7 @@ async function handleRecharge(event) {
 
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://187.251.132.2:5000/api/transacciones/recargas', {
+        const response = await fetch('/api/api/transacciones/recargas', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,

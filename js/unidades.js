@@ -1,5 +1,5 @@
 // Configuración de la API
-const API_BASE_URL = 'http://187.251.132.2:5000';
+const API_BASE_URL = '/api';
 
 // Configuración de la paginación
 let currentPage = 1;
@@ -91,14 +91,16 @@ async function cargarUnidades() {
         mostrarCargando(true);
 
         // Construir URL con parámetros de paginación según la estructura esperada por el backend
-        const url = new URL(`${API_BASE_URL}/api/unidades`);
+        const url = new URL(`${API_BASE_URL}/api/unidades`, 'https://pagabus.org');
         url.searchParams.append('PageParameters.PageNumber', currentPage.toString());
         url.searchParams.append('PageParameters.PageSize', pageSize.toString());
 
         console.log('URL de consulta:', url.toString());
         console.log('Token:', token);
 
-        const response = await fetch(url, {
+        const finalUrl = url.pathname + url.search;
+
+        const response = await fetch(finalUrl, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
