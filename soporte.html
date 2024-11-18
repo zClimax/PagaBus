@@ -1,22 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
     <title>Soporte - PagaBus</title>
-    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
     <link href="css/styles.css" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <link rel="icon" href="logopagabus.ico">
 </head>
 <body class="sb-nav-fixed">
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
         <a class="navbar-brand ps-3" href="index.html">PagaBus</a>
-        <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
+        <div class="d-none d-md-inline-block ms-auto me-0 me-md-3 my-2 my-md-0"></div>
+        <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-user fa-fw"></i>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="layout-sidenav-light.html">Configuraciones</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item" href="#" onclick="logout()">Cerrar Sesión</a></li>
+                </ul>
+            </li>
+        </ul>
     </nav>
+
     <div id="layoutSidenav">
         <div id="layoutSidenav_nav">
             <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
@@ -27,68 +36,82 @@
                             <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                             Dashboard
                         </a>
-                            <a class="nav-link" href="charts.html">
-                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
-                                 Graficas
-                            </a>
-                            <a class="nav-link" href="regisunidades.html">
-                                <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
-                                Registrar Unidad
-                            </a>
-                            <a class="nav-link" href="soporte.html">
-                                <div class="sb-nav-link-icon"><i class="fas fa-life-ring"></i></div>
-                                Soporte
-                            </a>
+                        <a class="nav-link" href="charts.html">
+                            <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                            Gráficas
+                        </a>
+                        <a class="nav-link" href="regisunidades.html">
+                            <div class="sb-nav-link-icon"><i class="fas fa-bus"></i></div>
+                            Registrar Unidad
+                        </a>
+                        <a class="nav-link active" href="soporte.html">
+                            <div class="sb-nav-link-icon"><i class="fas fa-headset"></i></div>
+                            Soporte
+                        </a>
                     </div>
                 </div>
                 <div class="sb-sidenav-footer">
-                    <div class="small"><b>Logged in as:</b></div>
-                    Cuenta Usuario
+                    <div class="small">Conectado como:</div>
+                    <span id="userNameDisplay">Cargando...</span>
                 </div>
             </nav>
         </div>
+
         <div id="layoutSidenav_content">
             <main>
                 <div class="container-fluid px-4">
-                    <h1 class="mt-4">Soporte</h1>
+                    <h1 class="mt-4">Soporte Técnico</h1>
                     <ol class="breadcrumb mb-4">
                         <li class="breadcrumb-item active">Contacta con nuestro equipo de soporte</li>
                     </ol>
+
                     <div class="row">
                         <div class="col-xl-6 col-md-6">
                             <div class="card mb-4">
                                 <div class="card-header">
-                                    <i class="fas fa-phone me-1"></i>
+                                    <i class="fas fa-info-circle me-1"></i>
                                     Información de Contacto
                                 </div>
                                 <div class="card-body">
-                                    <p><strong>Teléfono:</strong> +52 55 1234 5678</p>
-                                    <p><strong>Correo Electrónico:</strong> soporte@pagabus.com</p>
-                                    <p><strong>Dirección:</strong> Av. Insurgentes Sur 1234, Ciudad de México, México</p>
+                                    <p><strong><i class="fas fa-phone me-2"></i>Teléfono:</strong> +52 55 1234 5678</p>
+                                    <p><strong><i class="fas fa-envelope me-2"></i>Correo Electrónico:</strong> soporte@pagabus.com</p>
+                                    <p><strong><i class="fas fa-map-marker-alt me-2"></i>Dirección:</strong> Av. Insurgentes Sur 1234, Ciudad de México, México</p>
+                                    <p class="mb-0 text-muted">Horario de atención: Lunes a Viernes 9:00 AM - 6:00 PM</p>
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-xl-6 col-md-6">
                             <div class="card mb-4">
                                 <div class="card-header">
-                                    <i class="fas fa-envelope me-1"></i>
-                                    Envíanos un Mensaje
+                                    <i class="fas fa-ticket-alt me-1"></i>
+                                    Nuevo Ticket de Soporte
                                 </div>
                                 <div class="card-body">
-                                    <form>
+                                    <div id="alertContainer"></div>
+                                    <form id="supportForm">
                                         <div class="mb-3">
-                                            <label for="inputName" class="form-label">Nombre</label>
-                                            <input type="text" class="form-control" id="inputName" placeholder="Tu nombre">
+                                            <label for="nombre" class="form-label">Nombre</label>
+                                            <input type="text" class="form-control" id="nombre" required>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="inputEmail" class="form-label">Correo Electrónico</label>
-                                            <input type="email" class="form-control" id="inputEmail" placeholder="Tu correo electrónico">
+                                            <label for="email" class="form-label">Correo Electrónico</label>
+                                            <input type="email" class="form-control" id="email" required>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="inputMessage" class="form-label">Mensaje</label>
-                                            <textarea class="form-control" id="inputMessage" rows="4" placeholder="Escribe tu mensaje aquí..."></textarea>
+                                            <label for="asunto" class="form-label">Asunto</label>
+                                            <input type="text" class="form-control" id="asunto" required>
                                         </div>
-                                        <button type="submit" class="btn btn-primary">Enviar</button>
+                                        <div class="mb-3">
+                                            <label for="mensaje" class="form-label">Mensaje</label>
+                                            <textarea class="form-control" id="mensaje" rows="4" required></textarea>
+                                        </div>
+                                        <button type="submit" id="submitButton" class="btn btn-primary">
+                                            <span class="button-text">Enviar Ticket</span>
+                                            <span id="submitSpinner" class="spinner-border spinner-border-sm ms-2" style="display: none;" role="status">
+                                                <span class="visually-hidden">Cargando...</span>
+                                            </span>
+                                        </button>
                                     </form>
                                 </div>
                             </div>
@@ -96,21 +119,24 @@
                     </div>
                 </div>
             </main>
+
             <footer class="py-4 bg-light mt-auto">
                 <div class="container-fluid px-4">
                     <div class="d-flex align-items-center justify-content-between small">
-                        <div class="text-muted">Copyright &copy; PagaBus 2024</div>
+                        <div class="text-muted">Copyright © PagaBus 2024</div>
                         <div>
-                            <a href="#">Politicas de privacidad</a>
-                            &middot;
-                            <a href="#">Terminos &amp; Condiciones</a>
+                            <a href="#">Políticas de privacidad</a> · 
+                            <a href="#">Términos & Condiciones</a>
                         </div>
                     </div>
                 </div>
             </footer>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="js/scripts.js"></script>
+    <script src="js/soporte.js"></script>
 </body>
 </html>
